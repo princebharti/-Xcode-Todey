@@ -8,14 +8,15 @@
 
 import UIKit
 import CoreData
+import RealmSwift
 
 
 
 class CategoryTableViewController: UITableViewController {
     
-    let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    let realm = try! Realm()
     
-    var categoryArray = [Category]()
+    var categoryArray : Results<Category>?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,10 +38,9 @@ class CategoryTableViewController: UITableViewController {
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
             
             //action to be performed by the addButton
-            let category = Category(context: self.context)
-            category.name = textField?.text!
-            self.categoryArray.append(category)
-            self.saveCategory()
+            let category = Category()
+            category.name = (textField?.text)!
+            self.saveCategory(category: category)
      
         }
         
@@ -56,15 +56,14 @@ class CategoryTableViewController: UITableViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "categoryCell", for: indexPath)
-        cell.textLabel?.text = categoryArray[indexPath.row].name!
+        cell.textLabel?.text = categoryArray?[indexPath.row].name ?? "No Category is added"
         return cell
         
     }
     
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        
-        return categoryArray.count
+        return categoryArray?.count ?? 1
     }
     
     
@@ -81,7 +80,7 @@ class CategoryTableViewController: UITableViewController {
         let destinationVC = segue.destination as! ToDoListViewController
         
         if let indexPath = tableView.indexPathForSelectedRow {
-            destinationVC.selectedCategory = categoryArray[indexPath.row]
+            destinationVC.selectedCategory = categoryArray?[indexPath.row]
         }
         
         
@@ -93,28 +92,24 @@ class CategoryTableViewController: UITableViewController {
     
     //MARK: - Data Manupulation methods
     
-    func saveCategory(){
+    func saveCategory(category : Category){
+        // writing to the realim database
         
         do {
-            try  context.save()
+            try  realm.write {
+                realm.add(category)
+            }
         } catch {
            
-            print("error found while saving category using context \(error)")
+            print("error found while saving category using realm \(error)")
         }
         
         tableView.reloadData()
   }
     
     func loadCategory(){
-        
-        let request : NSFetchRequest<Category> = Category.fetchRequest()
-        
-        do {
-            categoryArray = try context.fetch(request)
-        } catch {
-            print("error while fetching the request \(error)")
-        }
-    
+        // reading from the realm database
+        categoryArray = realm.objects(Category.self)
     }
 
     
