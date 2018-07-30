@@ -8,6 +8,7 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
 class ToDoListViewController: SwipeCellTableViewController {
     
@@ -32,6 +33,34 @@ class ToDoListViewController: SwipeCellTableViewController {
         
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        title = selectedCategory?.name // to change the title in the navbar
+        guard let colorHex = selectedCategory?.cellColor else {fatalError()}
+
+        updateNavBar(withHexCode: colorHex)
+        
+   }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+            updateNavBar(withHexCode: "1D9BF6")
+        
+    }
+    
+    func updateNavBar(withHexCode colorHex : String){
+        
+        guard let navigationBar = navigationController?.navigationBar else {fatalError()}
+        guard let tintColor = UIColor(hexString: (colorHex)) else {fatalError()}
+        navigationBar.barTintColor = tintColor
+        navigationBar.tintColor = ContrastColorOf(tintColor , returnFlat: true)
+        searchBar.barTintColor = tintColor
+
+        navigationBar.largeTitleTextAttributes = [NSAttributedStringKey.foregroundColor : ContrastColorOf(tintColor , returnFlat: true)] // to change the title color
+        
+    }
+    
+    
+    
+    
     //MARK: - Table View DataSource Methds
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -41,6 +70,13 @@ class ToDoListViewController: SwipeCellTableViewController {
             
             cell.textLabel?.text = item.title
             cell.accessoryType = item.done ? .checkmark : .none
+        
+            guard let categoryCellColorHex = selectedCategory?.cellColor  else {fatalError()}
+            let backgroundColor = UIColor(hexString: categoryCellColorHex)?.darken(byPercentage:CGFloat(Float(indexPath.row)/Float((itemResults?.count)!)))
+            cell.backgroundColor = backgroundColor
+            cell.textLabel?.textColor = ContrastColorOf(backgroundColor!, returnFlat: true)
+        
+        
         } else {
             cell.textLabel?.text = "No Items added"
         }
