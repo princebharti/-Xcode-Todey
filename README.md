@@ -2,4 +2,4 @@
 
 
 ## Finished App
-![Finished App](https://github.com/princebharti/Images/blob/master/Clima.gif)
+--![Finished App](https://github.com/princebharti/Images/blob/master/Clima.gif)
